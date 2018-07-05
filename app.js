@@ -1,12 +1,12 @@
 {
-  console.log("hoge");
+  console.log("app(popup) script ready!");
   const out = document.getElementById("out");
   const addBtn = document.getElementById("addBtn");
   addBtn.addEventListener("click", (ev) => {
     console.log("click!");
-    console.log(window.history.state);
-    const rand = Math.floor(Math.random() * 10);
-    console.log(rand);
-    out.innerText = rand < 5 ? "hoge" : "fuga";
+  });
+  chrome.runtime.sendMessage("fugafuga");
+  chrome.runtime.onMessage.addListener(function(req, sender, resp) {
+    out.innerText = req;
   });
 }

@@ -5,5 +5,17 @@
   "browser_action": {
     "default_popup": "index.html"
   },
-  "permissions": []
+  "background": {
+    "scripts": ["background.js"]
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "http://*/*",
+        "https://*/*"
+      ],
+      "js": ["contents.js"]
+    }
+  ],
+  "permissions": ["tabs"]
 }
