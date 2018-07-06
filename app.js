@@ -1,15 +1,22 @@
 {
   console.log("app(popup) script ready!");
 
-  let memoUrl = "";
+  let memoUrl = {url: "empty"};
+  let memoUrlP = new Proxy(memoUrl, {
+    set: (tgt, prop, val) =>  {
+      console.log("update memoUrlP");
+      console.log(vm.tgtUrl, tgt, prop, val);
+      vm.tgtUrl = tgt[prop] = val;
+    }
+  });
   let urlAry = null;
   let vm = null;
 
   function init() {
     chrome.runtime.sendMessage("send from app(popup)");
     chrome.runtime.onMessage.addListener((req, sender, resp) => {
-      console.log("message recived", req.msg);
-      memoUrl = req.url;
+      console.log("message recived", req);
+      memoUrlP.url = req.url;
     });
     urlAry = getUrlAry();
     vm = vAppInit();
@@ -37,12 +44,24 @@
       `
     };
 
+    const MyInText = {
+      props: ["tgtUrl"],
+      template: `
+        <div>
+          <span>{{tgtUrl}}</span>
+          <input type="text" :value="tgtUrl" />
+        </div>
+      `
+    }
+
     const MyRootComponent = {
-      props: ["urlList"],
-      components: {MyUrlList},
+      props: ["urlList", "tgtUrl"],
+      components: {MyUrlList, MyInText},
       template: `
         <div>
           <MyUrlList :list="urlList" />
+          <br />
+          <MyInText :tgtUrl="tgtUrl" />
         </div>
       `
     };
@@ -51,10 +70,11 @@
       el: "#root",
       components: {MyRootComponent},
       data: {
-        urlList: getUrlList()
+        urlList: getUrlList(),
+        tgtUrl: memoUrlP
       },
       template: `
-        <MyRootComponent :urlList="urlList" />
+        <MyRootComponent :urlList="urlList" :tgtUrl="tgtUrl" />
       `
     });
     

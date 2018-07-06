@@ -1,7 +1,10 @@
 {
   console.log("content script ready!");
-  chrome.runtime.sendMessage("send from content-script");
-  chrome.runtime.onMessage.addListener(function(req, sender, resp) {
-    console.log(req);
+  document.addEventListener("visibilitychange", () => {
+    if (!document.hidden) {
+      console.log("change!");
+      chrome.runtime.sendMessage("send from content-script at vi change");
+    }
   });
+  chrome.runtime.sendMessage("send from content-script");
 }
