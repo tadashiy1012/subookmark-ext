@@ -9,37 +9,35 @@
       vm.tgtUrl = tgt[prop] = val;
     }
   });
-  let urlAry = null;
+  let urlAry = {list: getUrlAryFromLS()};
+  let urlAryP = new Proxy(urlAry, {
+    set: (tgt, prop, val) => {
+      console.log("update urlAryP");
+      console.log(vm.urlList, tgt, val);
+      tgt.list.push(val);
+      vm.urlList = tgt;
+    }
+  })
   let vm = null;
 
-  function init() {
-    chrome.runtime.sendMessage("send from app(popup)");
-    chrome.runtime.onMessage.addListener((req, sender, resp) => {
-      console.log("message recived", req);
-      memoUrlP.url = req.url;
-    });
-    urlAry = getUrlAry();
-    vm = vAppInit();
-    console.log("app initialized!");
+  function getUrlAryFromLS() {
+    let ary = JSON.parse(localStorage.getItem("urls"));
+    if (ary === void 0 || ary === null) { ary = []; }
+    console.log(ary);
+    return ary;
   }
 
   function vAppInit() {
 
-    const MyUrlListItem = {
-      props: ["list"],
-      template: `
-        <ol>
-          <li v-for="item in list">{{ item }}</li>
-        </ol>
-      `
-    };
-
     const MyUrlList = {
       props: ["list"],
-      components: {MyUrlListItem},
       template: `
         <div>
-          <MyUrlListItem :list="list" />
+          <ul>
+            <li v-for="item in list">
+              {{ item.url }}
+            </li>
+          </ul>
         </div>
       `
     };
@@ -48,30 +46,42 @@
       props: ["tgtUrl"],
       template: `
         <div>
-          <span>{{tgtUrl}}</span>
           <input type="text" :value="tgtUrl" />
         </div>
       `
     }
 
+    const MyInButton = {
+      methods: {
+        clickAction: () => { console.log("click!"); }
+      },
+      template: `
+        <div>
+          <button @click="clickAction">bookmark url</button>
+        </div>
+      `
+    };
+
     const MyRootComponent = {
       props: ["urlList", "tgtUrl"],
-      components: {MyUrlList, MyInText},
+      components: {MyUrlList, MyInText, MyInButton},
       template: `
         <div>
           <MyUrlList :list="urlList" />
           <br />
           <MyInText :tgtUrl="tgtUrl" />
+          <br />
+          <MyInButton />
         </div>
       `
     };
-
+  
     let vm = new Vue({
       el: "#root",
       components: {MyRootComponent},
       data: {
-        urlList: getUrlList(),
-        tgtUrl: memoUrlP
+        urlList: urlAryP,
+        tgtUrl: memoUrlP,
       },
       template: `
         <MyRootComponent :urlList="urlList" :tgtUrl="tgtUrl" />
@@ -81,28 +91,26 @@
     return vm;
   }
 
-  function getUrlAry() {
-    let ary = JSON.parse(localStorage.getItem("urls"));
-    if (ary === void 0 || ary === null) { ary = []; }
-    console.log(ary);
-    return ary;
-  }
-  
-  function getUrlList() {
-    const a = [
-      ...urlAry.map((elm, idx) => { return {id: idx, url: elm}; }),
-      {id: 10000, url: "http://example.com"}
-    ];
-    return a;
+  function init() {
+    console.log("app init");
+    chrome.runtime.sendMessage("send from app(popup)");
+    chrome.runtime.onMessage.addListener((req, sender, resp) => {
+      console.log("message recived", req);
+      memoUrlP.url = req.url;
+    });
+    vm = vAppInit();
   }
 
-  function addBtnClick(ev) {
+  /*function addBtnClick(ev) {
     if (urlAry.indexOf(memoUrl) === -1) {
       urlAry.push(memoUrl);
       console.log("new url added!");
     }
     localStorage.setItem("urls", JSON.stringify(urlAry));
-  }
+  }*/
   
   init();
+  console.log(memoUrlP);
+  console.log(urlAryP);
+  
 }
