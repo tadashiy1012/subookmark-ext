@@ -14,7 +14,7 @@
   let urlAryP = new Proxy(urlAry, {
     set: (tgt, prop, val) => {
       console.log("update urlAryP", val);
-      tgt.ary = [...new Set(val)]
+      tgt.ary = [...new Set(val)].slice(-3);
       localStorage.setItem("urls", JSON.stringify(tgt.ary));
     }
   })
@@ -29,12 +29,12 @@
   function vAppInit() {
 
     const MyUrlList = {
-      props: ["list"],
+      props: ["items"],
       template: `
         <div>
           <table class="pure-table pure-table-horizontal " style="width: 100%;">
-            <tr v-for="item in list.ary">
-              <td>{{ item }}</td>
+            <tr v-for="item in items">
+              <td><a :href="item" target="_blank">{{ item }}</a></td>
             </tr>
           </table>
         </div>
@@ -65,7 +65,7 @@
       components: {MyUrlList, MyInButton},
       template: `
         <div>
-          <MyUrlList :list="urlList" />
+          <MyUrlList :items="urlList.ary" />
           <br />
           <MyInButton :tgtUrl="tgtUrl" :urlList="urlList" />
         </div>
