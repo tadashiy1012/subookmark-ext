@@ -14,8 +14,8 @@
   let urlAryP = new Proxy(urlAry, {
     set: (tgt, prop, val) => {
       console.log("update urlAryP", val);
-      tgt.ary = val
-      localStorage.setItem("urls", JSON.stringify(val));
+      tgt.ary = [...new Set(val)]
+      localStorage.setItem("urls", JSON.stringify(tgt.ary));
     }
   })
   let vm = null;
@@ -51,13 +51,11 @@
         }
       },
       template: `
-        <div>
-          <form class="pure-form">
-            <input type="text" class="pure-input-1" :value="tgtUrl.url" />
-            <button @click="clickAction" class="pure-button pure-input-1">
-              bookmark url
-            </button>
-          </form>
+        <div class="pure-form">
+          <input type="text" class="pure-input-1" :value="tgtUrl.url" />
+          <button @click="clickAction" class="pure-button pure-input-1">
+            bookmark url
+          </button>
         </div>
       `
     };
