@@ -13,9 +13,7 @@
   let urlAry = {ary: getUrlAryFromLS()};
   let urlAryP = new Proxy(urlAry, {
     set: (tgt, prop, val) => {
-      console.log("update urlAryP");
-      console.log(vm.urlList, tgt, val);
-      console.log(val);
+      console.log("update urlAryP", val);
       tgt.ary = val
       localStorage.setItem("urls", JSON.stringify(val));
     }
@@ -25,7 +23,6 @@
   function getUrlAryFromLS() {
     let ary = JSON.parse(localStorage.getItem("urls"));
     if (ary === void 0 || ary === null) { ary = []; }
-    console.log("ary is", ary);
     return ary;
   }
 
@@ -35,54 +32,42 @@
       props: ["list"],
       template: `
         <div>
-          <ul>
-            <li v-for="item in list.ary">
-              {{ item }}
-            </li>
-          </ul>
+          <table class="pure-table pure-table-horizontal " style="width: 100%;">
+            <tr v-for="item in list.ary">
+              <td>{{ item }}</td>
+            </tr>
+          </table>
         </div>
       `
     };
-
-    const MyInText = {
-      props: ["tgtUrl"],
-      template: `
-        <div>
-          <input type="text" :value="tgtUrl.url" />
-        </div>
-      `
-    }
 
     const MyInButton = {
       props: ["urlList", "tgtUrl"],
       methods: {
         clickAction: function() {
-          console.log("click!");
-          console.log(this.urlList, this.tgtUrl);
-          console.log(this.urlList.ary);
           let ls = this.urlList.ary;
-          console.log(ls);
-          console.log(this.urlList.ary === ls);
-          //this.urlList.ary.push(this.tgtUrl.url);
           ls.push(this.tgtUrl.url);
           urlAryP.ary = ls;
         }
       },
       template: `
         <div>
-          <button @click="clickAction">bookmark url</button>
+          <form class="pure-form">
+            <input type="text" class="pure-input-1" :value="tgtUrl.url" />
+            <button @click="clickAction" class="pure-button pure-input-1">
+              bookmark url
+            </button>
+          </form>
         </div>
       `
     };
 
     const MyRootComponent = {
       props: ["urlList", "tgtUrl"],
-      components: {MyUrlList, MyInText, MyInButton},
+      components: {MyUrlList, MyInButton},
       template: `
         <div>
           <MyUrlList :list="urlList" />
-          <br />
-          <MyInText :tgtUrl="tgtUrl" />
           <br />
           <MyInButton :tgtUrl="tgtUrl" :urlList="urlList" />
         </div>
