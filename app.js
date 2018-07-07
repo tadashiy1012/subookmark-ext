@@ -4,18 +4,20 @@
   let memoUrl = {url: "empty"};
   let memoUrlP = new Proxy(memoUrl, {
     set: (tgt, prop, val) =>  {
-      console.log("update memoUrlP");
-      console.log(vm.tgtUrl, tgt, prop, val);
-      vm.tgtUrl = tgt[prop] = val;
+      console.log("update memoUrlP", val);
+      if (val !== void 0 && val !== null && val.length > 0) {
+        tgt[prop] = val;
+      }
     }
   });
-  let urlAry = {list: getUrlAryFromLS()};
+  let urlAry = {ary: getUrlAryFromLS()};
   let urlAryP = new Proxy(urlAry, {
     set: (tgt, prop, val) => {
       console.log("update urlAryP");
       console.log(vm.urlList, tgt, val);
-      tgt.list.push(val);
-      vm.urlList = tgt;
+      console.log(val);
+      tgt.ary = val
+      localStorage.setItem("urls", JSON.stringify(val));
     }
   })
   let vm = null;
@@ -23,7 +25,7 @@
   function getUrlAryFromLS() {
     let ary = JSON.parse(localStorage.getItem("urls"));
     if (ary === void 0 || ary === null) { ary = []; }
-    console.log(ary);
+    console.log("ary is", ary);
     return ary;
   }
 
@@ -34,8 +36,8 @@
       template: `
         <div>
           <ul>
-            <li v-for="item in list">
-              {{ item.url }}
+            <li v-for="item in list.ary">
+              {{ item }}
             </li>
           </ul>
         </div>
@@ -46,14 +48,25 @@
       props: ["tgtUrl"],
       template: `
         <div>
-          <input type="text" :value="tgtUrl" />
+          <input type="text" :value="tgtUrl.url" />
         </div>
       `
     }
 
     const MyInButton = {
+      props: ["urlList", "tgtUrl"],
       methods: {
-        clickAction: () => { console.log("click!"); }
+        clickAction: function() {
+          console.log("click!");
+          console.log(this.urlList, this.tgtUrl);
+          console.log(this.urlList.ary);
+          let ls = this.urlList.ary;
+          console.log(ls);
+          console.log(this.urlList.ary === ls);
+          //this.urlList.ary.push(this.tgtUrl.url);
+          ls.push(this.tgtUrl.url);
+          urlAryP.ary = ls;
+        }
       },
       template: `
         <div>
@@ -71,7 +84,7 @@
           <br />
           <MyInText :tgtUrl="tgtUrl" />
           <br />
-          <MyInButton />
+          <MyInButton :tgtUrl="tgtUrl" :urlList="urlList" />
         </div>
       `
     };
@@ -100,17 +113,6 @@
     });
     vm = vAppInit();
   }
-
-  /*function addBtnClick(ev) {
-    if (urlAry.indexOf(memoUrl) === -1) {
-      urlAry.push(memoUrl);
-      console.log("new url added!");
-    }
-    localStorage.setItem("urls", JSON.stringify(urlAry));
-  }*/
   
   init();
-  console.log(memoUrlP);
-  console.log(urlAryP);
-  
 }
